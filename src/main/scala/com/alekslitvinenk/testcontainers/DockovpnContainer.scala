@@ -17,7 +17,7 @@ object DockovpnContainer {
 
 import DockovpnContainer._
 class DockovpnContainer(tag: String)
-  extends FixedHostPortGenericContainer[DockovpnContainer](dockOvpnImageName + ":" + tag) {
+  extends FixedHostPortGenericContainer[DockovpnContainer](s"$dockOvpnImageName:$tag") {
   
   private val httpPort = 8080
   private val udpPort = 1194
@@ -31,4 +31,8 @@ class DockovpnContainer(tag: String)
     Wait.forLogMessage(logEntryRegEx, 1)
       .withStartupTimeout(startupTimeout)
   )
+  
+  def getHttpPort: Int = httpPort
+  def getUdpPort: Int = udpPort
+  def getConfigUrl = s"http://$getHost:$getHttpPort"
 }
