@@ -17,9 +17,11 @@ object Main extends App {
   val res1 = Try {
     Source.fromURL(new URL(container.getConfigUrl))
   }.map(_.getLines().reduce(_ + _)).toOption
+  println(res1)
   
   // Return nothing when config endpoint accessed second time
   val res2 = Try {
     Source.fromURL(new URL(container.getConfigUrl))
   }.map(_.getLines().reduce(_ + _)).toOption
+  println(res2)
 }

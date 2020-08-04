@@ -3,7 +3,7 @@ lazy val root = (project in file("."))
   .settings(
     name := "TestContainers",
     version := "0.1",
-    scalaVersion := "2.12.12",
+    scalaVersion := "2.13.3",
     unmanagedResourceDirectories in Compile += { baseDirectory.value / "src/main/resources" },
     
     libraryDependencies ++= Seq(
@@ -16,7 +16,7 @@ lazy val root = (project in file("."))
       "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.38.1",
       "com.dimafeng" %% "testcontainers-scala-mysql" % "0.38.1",
       "org.scalatest" %% "scalatest" % "3.1.1" % Test,
-      "org.scalamock" %% "scalamock" % "4.1.0" % Test,
+      "org.scalamock" %% "scalamock" % "4.4.0" % Test,
       "com.typesafe.akka" %% "akka-actor-testkit-typed" % "2.6.6" % Test
     )
   )
