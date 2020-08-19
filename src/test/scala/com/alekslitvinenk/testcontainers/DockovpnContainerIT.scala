@@ -23,13 +23,13 @@ class DockovpnContainerIT extends AnyWordSpec with BeforeAndAfter with BeforeAnd
       preLastLine
         .substring(
           preLastLine.indexOf("Config server started"),
-        ).strip should be("Config server started, download your client.ovpn config at http:///")
+        ).trim should be("Config server started, download your client.ovpn config at http:///")
   
       // Check last line content after timestamp
       lastLine
         .substring(
           lastLine.indexOf("NOTE"),
-        ).strip should be("NOTE: After you download your client config, http server will be shut down!")
+        ).trim should be("NOTE: After you download your client config, http server will be shut down!")
     }
     
     "provide client config via http only once" in {
@@ -39,7 +39,7 @@ class DockovpnContainerIT extends AnyWordSpec with BeforeAndAfter with BeforeAnd
       logs.last
         .substring(
           logs.last.indexOf("Config http"),
-        ).strip should be("Config http server has been shut down")
+        ).trim should be("Config http server has been shut down")
   
       val downloadConfigResult2 = downloadClientConfig()
       
