@@ -13,8 +13,8 @@ lazy val root = (project in file("."))
       "com.typesafe.akka" %% "akka-actor-typed" % "2.6.6",
       "ch.qos.logback" % "logback-classic" % "1.2.3",
       "com.github.pureconfig" %% "pureconfig" % "0.12.2",
-      "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.38.1",
-      "com.dimafeng" %% "testcontainers-scala-mysql" % "0.38.1",
+      "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.39.1",
+      "com.dimafeng" %% "testcontainers-scala-mysql" % "0.39.1",
       "org.scalatest" %% "scalatest" % "3.1.1" % Test,
       "org.scalamock" %% "scalamock" % "4.4.0" % Test,
       "com.typesafe.akka" %% "akka-actor-testkit-typed" % "2.6.6" % Test

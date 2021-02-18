@@ -11,8 +11,20 @@ import scala.io.Source
 import scala.util.Try
 
 class DockovpnContainerIT extends AnyWordSpec with BeforeAndAfter with BeforeAndAfterAll {
+  private val dockerTagEnvVar = "DOCKER_IMAGE_TAG"
   private var container: DockovpnContainer = _
   private val logs = mutable.ArrayBuffer[String]()
+  private val tag = sys.env.getOrElse(dockerTagEnvVar, DockovpnContainer.Tags.latest)
+  
+  override protected def beforeAll(): Unit = {
+    container = DockovpnContainer(tag)
+    container.withLogConsumer(outputFrame => logs += outputFrame.getUtf8String)
+    container.start()
+  }
+  
+  override protected def afterAll(): Unit = {
+    container.stop()
+  }
   
   "DockovpnContainer" should {
     "start successfully" in {
@@ -50,14 +62,4 @@ class DockovpnContainerIT extends AnyWordSpec with BeforeAndAfter with BeforeAnd
   private def downloadClientConfig(): Try[String] = Try {
     Source.fromURL(new URL(container.getConfigUrl))
   }.map(_.getLines().reduce(_ + _))
-  
-  override protected def afterAll(): Unit = {
-    container.stop()
-  }
-  
-  override protected def beforeAll(): Unit = {
-    container = DockovpnContainer()
-    container.withLogConsumer(outputFrame => logs += outputFrame.getUtf8String)
-    container.start()
-  }
 }
