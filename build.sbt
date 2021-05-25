@@ -15,6 +15,7 @@ lazy val root = (project in file("."))
       "com.github.pureconfig" %% "pureconfig" % "0.12.2",
       "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.39.1",
       "com.dimafeng" %% "testcontainers-scala-mysql" % "0.39.1",
+      "com.github.nscala-time" %% "nscala-time" % "2.28.0",
       "org.scalatest" %% "scalatest" % "3.1.1" % Test,
       "org.scalamock" %% "scalamock" % "4.4.0" % Test,
       "com.typesafe.akka" %% "akka-actor-testkit-typed" % "2.6.6" % Test
