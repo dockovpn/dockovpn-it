@@ -1,16 +1,15 @@
-package com.alekslitvinenk.testcontainers.log.interpreters
+package com.alekslitvinenk.testcontainers.dockovpn.loginterpreters
 
-import com.alekslitvinenk.testcontainers.domain.ClientInfo
-import com.alekslitvinenk.testcontainers.domain.ClientInfo.ClientInfoCallback
+import com.alekslitvinenk.testcontainers.dockovpn.domain.ClientInfo
+import com.alekslitvinenk.testcontainers.dockovpn.domain.ClientInfo.ClientInfoCallback
 
 import scala.collection.mutable
 import scala.util.matching.Regex
 
 abstract class AbstractInterpreter(callback: ClientInfoCallback) {
-  protected val logEntriesRequired: Int = 1
+  
   protected val logs: mutable.ArrayBuffer[String] = mutable.ArrayBuffer[String]()
   private var collectionStarted = false
-  val patternToDetectSequence: Regex = "".r
   
   def startCollectingLogs(firstLogEntry: String): Unit = {
     collectionStarted = true
@@ -29,6 +28,10 @@ abstract class AbstractInterpreter(callback: ClientInfoCallback) {
       logs.clear()
     }
   }
+  
+  def patternToDetectSequence: Regex = ???
+  
+  protected def logEntriesRequired: Int = ???
   
   protected def parse(): ClientInfo = ???
 }

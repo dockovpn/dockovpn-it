@@ -1,6 +1,6 @@
 package com.alekslitvinenk.testcontainers.aux
 
-import com.alekslitvinenk.testcontainers.DockovpnContainer
+import com.alekslitvinenk.testcontainers.dockovpn.DockovpnContainer
 
 import java.nio.file.Files
 import scala.util.Try

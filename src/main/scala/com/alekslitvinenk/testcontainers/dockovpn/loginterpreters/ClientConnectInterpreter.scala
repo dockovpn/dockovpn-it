@@ -1,8 +1,7 @@
-package com.alekslitvinenk.testcontainers.log.interpreters
+package com.alekslitvinenk.testcontainers.dockovpn.loginterpreters
 
-import com.alekslitvinenk.testcontainers.domain.ClientInfo
-import com.alekslitvinenk.testcontainers.domain.ClientInfo.ClientInfoCallback
-import com.github.nscala_time.time.Imports.DateTime
+import com.alekslitvinenk.testcontainers.dockovpn.domain.ClientInfo
+import com.alekslitvinenk.testcontainers.dockovpn.domain.ClientInfo.ClientInfoCallback
 
 import java.time.Instant
 import java.util.Date

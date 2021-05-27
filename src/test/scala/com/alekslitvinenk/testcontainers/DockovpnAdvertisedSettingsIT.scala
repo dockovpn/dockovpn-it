@@ -1,7 +1,7 @@
 package com.alekslitvinenk.testcontainers
 
 import com.alekslitvinenk.testcontainers.aux.DockovpnContainerUtils._
-import com.alekslitvinenk.testcontainers.domain.ClientInfo
+import com.alekslitvinenk.testcontainers.dockovpn.{DockovpnClientContainer, DockovpnContainer}
 import org.scalatest.BeforeAndAfter
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
-class DockovpnDefaultConfigIT extends AnyWordSpec with BeforeAndAfter {
+class DockovpnAdvertisedSettingsIT extends AnyWordSpec with BeforeAndAfter {
   private val dockerTagEnvVar = "DOCKER_IMAGE_TAG"
   private var container: DockovpnContainer = _
   private val logs = mutable.ArrayBuffer[String]()
@@ -34,6 +34,8 @@ class DockovpnDefaultConfigIT extends AnyWordSpec with BeforeAndAfter {
     container.withNetwork(network)
     container.withNetworkAliases(containerAlias)
     container.start()
+    // FixMe
+    container.onClientConnected(_ => ())
   }
   
   after {
@@ -56,45 +58,56 @@ class DockovpnDefaultConfigIT extends AnyWordSpec with BeforeAndAfter {
     
     "accept connection from OpenVPN client with downloaded config" in {
       val configDirPath = container.downloadConfigToTempDir(Some("localhost")).get
-      
       val clientContainer = createClient(configDirPath)
-      
-      logs.takeRight(2).head should include ("Peer Connection Initiated with [AF_INET]")
-      logs.last should include ("MULTI_sva: pool returned IPv4=")
+  
+      container.getActiveClients should have length 1
       
       clientContainer.stop()
     }
     
     "accept connections from 2 OpenVPN clients that share same config" in {
       val configDirPath = container.downloadConfigToTempDir(Some("localhost")).get
-      
-      def clientConnected(clientInfo: ClientInfo): Unit = {
-        println(clientInfo)
-      }
   
-      container.onClientConnected(clientConnected)
-  
-      val futureClient1 = Future { createClient(configDirPath) }
-      val futureClient2 = Future { createClient(configDirPath) }
-      
-      val allStartFuture = Future.reduceLeft(List(futureClient1.map(_ => ()), futureClient2.map(_ => ())))((_, _) => ())
+      val startClientFuture1 = Future { createClient(configDirPath) }
+      val startClientFuture2 = Future { createClient(configDirPath) }
+      val allStartFuture = Future.reduceLeft(List(startClientFuture1.map(_ => ()), startClientFuture2.map(_ => ())))((_, _) => ())
       
       Await.ready(allStartFuture, Duration.Inf)
+  
+      container.getActiveClients should have length 2
       
-      val s1 = futureClient1.map(_.stop())
-      val s2 = futureClient2.map(_.stop())
-      
-      val allStopFuture = Future.reduceLeft(List(s1, s2))((_, _) => ())
+      val stopClientFuture1 = startClientFuture1.map(_.stop())
+      val stopClientFuture2 = startClientFuture2.map(_.stop())
+      val allStopFuture = Future.reduceLeft(List(stopClientFuture1, stopClientFuture2))((_, _) => ())
   
       Await.ready(allStopFuture, Duration.Inf)
     }
     
     "execute 'version' command successfully" in {
-    
+      val res = container.commands.getVersion
+      
+      res.getExitCode should be(0)
+      
+      val date = "[A-Za-z]{3}\\s[A-Za-z]{3}\\s\\d{1,2}\\s\\d{2}:\\d{2}:\\d{2}\\s\\d{4}"
+      val app = "Dockovpn"
+      val version = "v\\d{1}\\.\\d{1}\\.\\d{1}"
+      res.getStdout.stripLineEnd should fullyMatch regex s"^$date\\s$app\\s$version"
     }
   
     "execute 'genclient' command successfully" in {
-    
+      // drain config generated at startup
+      container.downloadClientConfig(Some("localhost"))
+      
+      val resFuture = Future { container.commands.generateClient }
+      
+      // need to give another thread a chance to send command to docker
+      Thread.sleep(1000)
+  
+      container.downloadClientConfig(Some("localhost")).isSuccess should be(true)
+      
+      val res = Await.result(resFuture, Duration.Inf)
+      
+      res.getExitCode should be (0)
     }
   }
   
