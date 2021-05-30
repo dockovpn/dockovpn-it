@@ -21,16 +21,15 @@ class DockovpnClientContainer(tag: String)
     Wait.forLogMessage(logEntryRegEx, 1)
       .withStartupTimeout(startupTimeout)
   )
-  
-  /**
-   * Returns directory where Dockovpn client expects to find client.ovpn file
-   * @return
-   */
-  def getConfigDir: String = "/opt/Dockovpn_data"
 }
 
 object DockovpnClientContainer {
   val dockOvpnClientImageName = "alekslitvinenk/openvpn-client"
+  /**
+   * Returns directory where Dockovpn client expects to find client.ovpn file
+   * @return
+   */
+  val getConfigDir: String = "/opt/Dockovpn_data"
   
   def apply(tag: String = Tags.latest): DockovpnClientContainer = new DockovpnClientContainer(Tags.latest)
   
