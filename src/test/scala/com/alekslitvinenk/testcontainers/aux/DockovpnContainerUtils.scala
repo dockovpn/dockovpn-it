@@ -5,9 +5,12 @@ import org.testcontainers.containers.Container
 
 import java.lang.reflect.{InvocationHandler, Method}
 import java.nio.file.{Files, Path, Paths}
+import java.util.concurrent.atomic.AtomicInteger
 import scala.util.Try
 
 object DockovpnContainerUtils {
+  
+  private lazy val configCounter: AtomicInteger = new AtomicInteger(0)
   
   class ContainerInvocationHandler(containerName: String) extends InvocationHandler {
     
@@ -16,7 +19,7 @@ object DockovpnContainerUtils {
   
   implicit class DockovpnContainerHelper(container: DockovpnContainer) {
     
-    def downloadConfigToTempDir(hostOpt: Option[String] = None): Try[String] = {
+    def downloadConfigToTempDir(hostOpt: Option[String] = None): Try[(String, String)] = {
       container.downloadClientConfig(hostOpt).map { config =>
         val dir = Files.createTempDirectory("dockovpn-").toFile
         dir.deleteOnExit()
@@ -28,23 +31,23 @@ object DockovpnContainerUtils {
       }
     }
     
-    def downloadConfigToVolumeDir(pathStr: String, hostOpt: Option[String] = None): Try[String] = {
+    def downloadConfigToVolumeDir(pathStr: String, hostOpt: Option[String] = None): Try[(String, String)] = {
       container.downloadClientConfig(hostOpt).map { config =>
         val dirPath = Paths.get(pathStr)
         println(s"Dockovpn_data path: $dirPath")
-        
-        //Files.deleteIfExists(dirPath)
         
         saveConfigToDir(dirPath, config)
       }
     }
     
-    private def saveConfigToDir(dirPath: Path, config: String): String = {
-      val configFilePath = Files.createFile(dirPath.resolve("client.ovpn"))
+    private def saveConfigToDir(dirPath: Path, config: String): (String, String) = {
+      val configName = s"client${configCounter.incrementAndGet()}.ovpn"
+      
+      val configFilePath = Files.createFile(dirPath.resolve(configName))
       Files.write(configFilePath, config.getBytes)
       println(s"Config file path: $configFilePath")
   
-      dirPath.toString
+      (dirPath.toString, configName)
     }
   }
   

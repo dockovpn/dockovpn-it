@@ -10,12 +10,13 @@ import java.time.Duration
  * Scala wrapper for [[https://github.com/dockovpn/docker-openvpn-client Dockovpn-client]]: simple OpenVpn client
  * @param tag
  */
-class DockovpnClientContainer(tag: String)
+class DockovpnClientContainer(configName: String, tag: String)
   extends GenericContainer[DockovpnClientContainer](s"$dockOvpnClientImageName:$tag") {
   
   private val logEntryRegEx = ".*Peer\\sConnection\\sInitiated\\swith.*"
   private val startupTimeout = Duration.ofSeconds(10)
   
+  withCommand(configName)
   withPrivilegedMode(true)
   waitingFor(
     Wait.forLogMessage(logEntryRegEx, 1)
@@ -26,12 +27,13 @@ class DockovpnClientContainer(tag: String)
 object DockovpnClientContainer {
   val dockOvpnClientImageName = "alekslitvinenk/openvpn-client"
   /**
-   * Returns directory where Dockovpn client expects to find client.ovpn file
+   * Returns directory where Dockovpn client expects to find config files
    * @return
    */
   val getConfigDir: String = "/opt/Dockovpn_data"
   
-  def apply(tag: String = Tags.latest): DockovpnClientContainer = new DockovpnClientContainer(Tags.latest)
+  def apply(configName: String, tag: String = Tags.latest): DockovpnClientContainer =
+    new DockovpnClientContainer(configName: String, Tags.latest)
   
   object Tags {
     val latest = "latest"

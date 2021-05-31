@@ -66,23 +66,20 @@ class DockovpnAdvertisedSettingsIT extends AnyWordSpec with BeforeAndAfter {
     }
     
     "accept connection from OpenVPN client with downloaded config" in {
-      val configDirPath = volumeRunnerContainerOpt
-        .fold(container.downloadConfigToTempDir(localhostOpt)) { _ =>
-          container.downloadConfigToVolumeDir(DockovpnClientContainer.getConfigDir, localhostOpt)
-        }.get
+      val (configDirPathOnHostMachine, configName) = downloadConfig()
       
-      val clientContainer = createClient(configDirPath)
+      val clientContainer = createClient(configDirPathOnHostMachine, configName)
   
       container.getActiveClients should have length 1
       
       clientContainer.stop()
     }
     
-    "accept connections from 2 OpenVPN clients that share same config" ignore {
-      val configDirPath = container.downloadConfigToTempDir(Some("localhost")).get
+    "accept connections from 2 OpenVPN clients that share same config" in {
+      val (configDirPathOnHostMachine, configName) = downloadConfig()
   
-      val startClientFuture1 = Future { createClient(configDirPath) }
-      val startClientFuture2 = Future { createClient(configDirPath) }
+      val startClientFuture1 = Future { createClient(configDirPathOnHostMachine, configName) }
+      val startClientFuture2 = Future { createClient(configDirPathOnHostMachine, configName) }
       val allStartFuture = Future.reduceLeft(List(startClientFuture1.map(_ => ()), startClientFuture2.map(_ => ())))((_, _) => ())
       
       Await.ready(allStartFuture, Duration.Inf)
@@ -126,12 +123,18 @@ class DockovpnAdvertisedSettingsIT extends AnyWordSpec with BeforeAndAfter {
     }
   }
   
-  private def createClient(configDirPath: String): DockovpnClientContainer = {
-    val clientContainer = DockovpnClientContainer()
+  private def downloadConfig(): (String, String) = volumeRunnerContainerOpt
+    .fold(container.downloadConfigToTempDir(localhostOpt)) { _ =>
+      container.downloadConfigToVolumeDir(DockovpnClientContainer.getConfigDir, localhostOpt)
+    }.get
+  
+  private def createClient(configDirPath: String, configName: String): DockovpnClientContainer = {
+    val clientContainer = DockovpnClientContainer(configName)
     volumeRunnerContainerOpt
       .fold(clientContainer.withFileSystemBind(configDirPath, DockovpnClientContainer.getConfigDir)) { container =>
         clientContainer.withVolumesFrom(container, BindMode.READ_ONLY)
       }
+    
     clientContainer.withNetwork(network)
     clientContainer.start()
   
