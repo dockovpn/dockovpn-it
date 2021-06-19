@@ -5,6 +5,7 @@ lazy val root = (project in file("."))
     version := "0.1",
     scalaVersion := "2.13.3",
     unmanagedResourceDirectories in Compile += { baseDirectory.value / "src/main/resources" },
+    fork := true,
     
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-http" % "10.1.12",
