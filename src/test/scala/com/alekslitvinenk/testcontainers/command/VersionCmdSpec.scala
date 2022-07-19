@@ -7,7 +7,7 @@ class VersionCmdSpec extends DockovpnBaseSpec {
   
   "Dockovpn 'version' command" should {
     "run successfully" in {
-      val res = container.commands.getVersion
+      val res = container.commands.getVersion()
     
       res.getExitCode should be(0)
     

@@ -14,11 +14,20 @@ object DockovpnContainerUtils {
   
   class ContainerInvocationHandler(containerName: String) extends InvocationHandler {
     
-    override def invoke(proxy: Any, method: Method, args: Array[AnyRef]): AnyRef = containerName
+    override def invoke(proxy: Any, method: Method, args: Array[AnyRef]): AnyRef =
+      method.getName match {
+        case "getContainerName" => containerName
+        case _ => ???
+      }
   }
   
   implicit class DockovpnContainerHelper(container: DockovpnContainer) {
-    
+  
+    /**
+     * Download config to a temp directory on a local machine
+     * @param hostOpt optional network host name of Dockovpn container
+     * @return
+     */
     def downloadConfigToTempDir(hostOpt: Option[String] = None): Try[(String, String)] = {
       container.downloadClientConfig(hostOpt).map { config =>
         val dir = Files.createTempDirectory("dockovpn-").toFile
@@ -30,7 +39,13 @@ object DockovpnContainerUtils {
         saveConfigToDir(dirPath, config)
       }
     }
-    
+  
+    /**
+     * Download config to a dir on a mounted volume of a Dockovpn container
+     * @param pathStr dir on a mounted volume
+     * @param hostOpt optional network host name of Dockovpn container
+     * @return
+     */
     def downloadConfigToVolumeDir(pathStr: String, hostOpt: Option[String] = None): Try[(String, String)] = {
       container.downloadClientConfig(hostOpt).map { config =>
         val dirPath = Paths.get(pathStr)
@@ -51,7 +66,12 @@ object DockovpnContainerUtils {
     }
   }
   
-  def getMockedContainerByContainerName(name: String): Container[DockovpnContainer] = {
+  /**
+   * Return the proxy wrapper for parent container
+   * @param name parent container name
+   * @return
+   */
+  def getParentContainerProxyByName(name: String): Container[DockovpnContainer] = {
     import java.lang.reflect.Proxy
     
     val iClazz = classOf[Container[DockovpnContainer]]
