@@ -30,7 +30,12 @@ class RmClientCmdSpec extends DockovpnBaseSpec with ConfigSupport {
     }
     
     "fail if client with given id doesn't exist" in {
-    
+      val clientId = "invalidClientId"
+  
+      val resFuture = Future { container.commands.removeClient(clientId) }
+      val res = Await.result(resFuture, defaultTimeout)
+      
+      res.getStderr.stripLineEnd should include("Unable to revoke as the input file is not a valid certificate")
     }
   }
 }
