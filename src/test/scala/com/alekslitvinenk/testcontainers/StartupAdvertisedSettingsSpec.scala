@@ -1,14 +1,14 @@
 package com.alekslitvinenk.testcontainers
 
-import com.alekslitvinenk.testcontainers.aux.DockovpnContainerUtils._
+import com.alekslitvinenk.testcontainers.aux.ConfigSupport
 import com.alekslitvinenk.testcontainers.dockovpn.DockovpnClientContainer
 import org.scalatest.matchers.should.Matchers._
-import org.testcontainers.containers.BindMode
 
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.{Await, Future}
+import scala.util.Try
 
-class StartupAdvertisedSettingsSpec extends DockovpnBaseSpec {
+class StartupAdvertisedSettingsSpec extends DockovpnBaseSpec with ConfigSupport {
   
   "Dockovpn" should {
     
@@ -27,45 +27,26 @@ class StartupAdvertisedSettingsSpec extends DockovpnBaseSpec {
     
     "accept connection from OpenVPN client with downloaded config" in {
       val (configDirPathOnHostMachine, configName) = downloadConfig()
-      val clientContainer = createClient(configDirPathOnHostMachine, configName)
+      val clientContainerTry = createClient(configDirPathOnHostMachine, configName)
   
       container.getActiveClients should have length 1
       
-      clientContainer.stop()
+      clientContainerTry.map(_.stop())
     }
     
     "accept connections from 2 OpenVPN clients that share same config" in {
       val (configDirPathOnHostMachine, configName) = downloadConfig()
       val nClients: Int = 2
-      val startClientsFutures: Seq[Future[DockovpnClientContainer]] =
+      val startClientsFutures: Seq[Future[Try[DockovpnClientContainer]]] =
         for (_ <- 1 to nClients) yield Future { createClient(configDirPathOnHostMachine, configName) }
       
       Await.ready(Future.sequence(startClientsFutures), defaultTimeout)
   
       container.getActiveClients should have length nClients
   
-      val stopClientsFutures: Seq[Future[Unit]] = startClientsFutures.map(_.map(_.stop()))
+      val stopClientsFutures: Seq[Future[Unit]] = startClientsFutures.map(_.map(_.map(_.stop())))
   
       Await.ready(Future.sequence(stopClientsFutures), defaultTimeout)
     }
-  }
-  
-  private def downloadConfig(): (String, String) = parentContainerWithVolumesOpt
-    .fold(container.downloadConfigToTempDir(containerHostOpt)) { _ =>
-      container.downloadConfigToVolumeDir(DockovpnClientContainer.getConfigDir, containerHostOpt)
-    }.get
-  
-  private def createClient(configDirPath: String, configName: String): DockovpnClientContainer = {
-    val clientContainer = DockovpnClientContainer(configName)
-    parentContainerWithVolumesOpt
-      .fold { clientContainer.withFileSystemBind(configDirPath, DockovpnClientContainer.getConfigDir)
-      } { container =>
-        clientContainer.withVolumesFrom(container, BindMode.READ_ONLY)
-      }
-    
-    clientContainer.withNetwork(network)
-    clientContainer.start()
-  
-    clientContainer
   }
 }

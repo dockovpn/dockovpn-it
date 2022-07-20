@@ -82,7 +82,7 @@ class DockovpnContainer(tag: String)
    * @param callback function that takes [[ClientInfo]] object as a parameter and returns nothing
    */
   def onClientConnected(callback: ClientInfoCallback): Unit = {
-    def  wrappedCallback(clientInfo: ClientInfo): Unit = {
+    def wrappedCallback(clientInfo: ClientInfo): Unit = {
       activeClients += clientInfo
       callback(clientInfo)
     }

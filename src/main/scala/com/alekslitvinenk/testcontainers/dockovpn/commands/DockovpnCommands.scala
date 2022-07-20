@@ -25,7 +25,7 @@ class DockovpnCommands(container: DockovpnContainer) {
    * @param clientId client Id
    * @return
    */
-  def removeClient(clientId: String): ExecResult = container.execInContainer(s"./rmclient.sh $clientId")
+  def removeClient(clientId: String): ExecResult = container.execInContainer("./rmclient.sh", clientId)
 }
 
 object DockovpnCommands {
